@@ -81,6 +81,7 @@ function macrosPlugin(
     require: _require = require,
     resolvePath = nodeResolvePath,
     isMacrosName = testMacrosRegex,
+    ignoredImporterPaths = [],
     ...options
   } = {},
 ) {
@@ -96,6 +97,16 @@ function macrosPlugin(
       Program(progPath, state) {
         progPath.traverse({
           ImportDeclaration(path) {
+            if (
+              ignoredImporterPaths.some(ignoredImporterPath =>
+                new RegExp(ignoredImporterPath).test(
+                  path.hub.file.opts.filename,
+                ),
+              )
+            ) {
+              return
+            }
+
             const isMacros = looksLike(path, {
               node: {
                 source: {
